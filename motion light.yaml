@@ -1,0 +1,47 @@
+alias: Licht Bewegung Küche
+description: ""
+trigger:
+  - platform: state
+    entity_id:
+      - binary_sensor.eve_motion_20eby9901_belegung
+    to: "on"
+condition:
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: binary_sensor.kuche_dunkel
+        state: "on"
+      - condition: device
+        type: is_on
+        device_id: 9e06a1ee2d69a909b5fc101369871f35
+        entity_id: 93321e2404d2f3a8fd30eb109df9be19
+        domain: light
+action:
+  - metadata: {}
+    data:
+      brightness_pct: 100
+    target:
+      area_id: kuche
+    action: light.turn_on
+  - wait_for_trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.eve_motion_20eby9901_belegung
+        to: "off"
+  - metadata: {}
+    data:
+      brightness_pct: 70
+    target:
+      area_id: kuche
+    action: light.turn_on
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 30
+      milliseconds: 0
+  - metadata: {}
+    data: {}
+    target:
+      area_id: kuche
+    action: light.turn_off
+mode: restart
