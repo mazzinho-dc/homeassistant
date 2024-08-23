@@ -1,3 +1,7 @@
+### Bewegung erkannt, wenn dunkel oder licht bereits an: Licht wird oder bleibt eingeschaltet
+### Wenn keine bewegung mehr erkannt, Licht dimmen auf xx Prozent. Timer starten 30 Sekunden
+### Bewegung erkannt innerhalb der 30 Sekunden, Licht 100%, Restart. Sonst: Licht ausschalten
+
 alias: Licht Bewegung Küche
 description: ""
 trigger:
