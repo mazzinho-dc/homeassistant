@@ -1,0 +1,94 @@
+### Configuration.yaml
+# waste_collection_schedule source configuration
+waste_collection_schedule:
+  sources:
+    - name: abfallnavi_de
+      args:
+        service: wml2
+        ort: Bocholt
+        strasse: Straßenname
+
+# Sensor
+sensor:
+  # ------- Garbage Collection -------
+  # Nächste Abholung
+  - platform: waste_collection_schedule
+    name: "Nächste Abholung"
+    value_template: '{{value.types|join(", ")}}{% if value.daysTo == 0 %} Heute{% elif value.daysTo == 1 %} Morgen{% else %} in {{value.daysTo}} tagen{% endif %}'
+  # Nächste Restmüll-Abholung
+  - platform: waste_collection_schedule
+    name: "Restmüll"
+    value_template: "{% if value.daysTo == 0 %} Heute{% elif value.daysTo == 1 %} Morgen{% else %} in {{value.daysTo}} tagen{% endif %}"
+    types:
+      - Restmüll 2 wöchentlich
+  # Nächste Biomüll Abholung
+  - platform: waste_collection_schedule
+    name: "Biomüll"
+    value_template: "{% if value.daysTo == 0 %} Heute{% elif value.daysTo == 1 %} Morgen{% else %} in {{value.daysTo}} tagen{% endif %}"
+    types:
+      - Bioabfall
+  # Nächste gelber-Sack Abholung
+  - platform: waste_collection_schedule
+    name: "Gelber Sack"
+    value_template: "{% if value.daysTo == 0 %} Heute{% elif value.daysTo == 1 %} Morgen{% else %} in {{value.daysTo}} tagen{% endif %}"
+    types:
+      - Gelbe Tonne
+  # Nächste Papiermüll Abholung
+  - platform: waste_collection_schedule
+    name: "Papier"
+    value_template: "{% if value.daysTo == 0 %} Heute{% elif value.daysTo == 1 %} Morgen{% else %} in {{value.daysTo}} tagen{% endif %}"
+    types:
+      - Altpapier
+
+
+### Automation - Benachrichtigung auf Alexa - Morgens
+alias: Müll Benachrichtigung TTS morgens
+description: ""
+trigger:
+  - platform: time
+    at: "07:00:00"
+condition:
+  - condition: template
+    value_template: "{{ 'Heute' in states('sensor.nachste_abholung') }}"
+action:
+  - data:
+      message: |
+        Hey! Habt ihr jetzt die Tonne rausgestellt? {% if
+        states('sensor.restmull') == "Heute" %} Restmüll {% elif
+        states('sensor.biomull') == "Heute" %} Biomüll {% elif
+        states('sensor.papier') == "Heute" %} Papier {% else %} Die gelbe Tonne
+        {% endif %} wird heute geleert!
+      target: media_player.kuche_show
+      data:
+        type: announce
+      title: Müll wird abgeholt!
+    action: notify.alexa_media_kuche_show
+mode: single
+
+
+### Sensor template - Abholung heute oder morgen
+{% if 'Heute' in states('sensor.nachste_abholung') %}
+ on
+{% elif 'Morgen' in states('sensor.nachste_abholung') %}
+ on
+{% else %} 
+ off
+{% endif %}
+
+
+### Mushroom Entity-Card, wenn nächster Abholung Morgen oder heute
+type: custom:mushroom-entity-card
+entity: sensor.nachste_abholung
+icon: mdi:trash-can
+icon_color: red
+tap_action:
+  action: none
+hold_action:
+  action: none
+double_tap_action:
+  action: none
+visibility:
+  - condition: state
+    entity: binary_sensor.mull_heute_oder_morgen
+    state: 'on'
+
